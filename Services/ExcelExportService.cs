@@ -7,52 +7,54 @@ public static class ExcelExportService
 {
     public static void Export(DataTable data, string filePath)
     {
+        // Pre-create colors once — avoids repeated string parsing inside loops
+        var headerBg = XLColor.FromHtml("#4472C4");
+        var headerFg = XLColor.White;
+        var zebraBg  = XLColor.FromHtml("#EBF0FA");
+
+        int colCount = data.Columns.Count;
+        int rowCount = data.Rows.Count;
+
+        // Convert rows to object[][] — replace DBNull with Blank so typed
+        // DataTable columns (e.g. DateTime) don't throw on empty cells.
+        var rows = new object[rowCount][];
+        for (int r = 0; r < rowCount; r++)
+        {
+            var src = data.Rows[r].ItemArray;
+            var dest = new object[colCount];
+            for (int c = 0; c < colCount; c++)
+                dest[c] = src[c] == DBNull.Value ? string.Empty : src[c]!;
+            rows[r] = dest;
+        }
+
         using var workbook = new XLWorkbook();
         var ws = workbook.AddWorksheet("Sonuçlar");
 
-        // Header row
-        for (int col = 0; col < data.Columns.Count; col++)
+        // ── Header row ──────────────────────────────────────────────────────
+        for (int col = 0; col < colCount; col++)
         {
             var cell = ws.Cell(1, col + 1);
             cell.Value = data.Columns[col].ColumnName;
             cell.Style.Font.Bold = true;
-            cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#4472C4");
-            cell.Style.Font.FontColor = XLColor.White;
+            cell.Style.Fill.BackgroundColor = headerBg;
+            cell.Style.Font.FontColor = headerFg;
         }
 
-        // Data rows
-        for (int row = 0; row < data.Rows.Count; row++)
+        // ── Bulk insert data rows (dramatically faster than cell-by-cell) ───
+        ws.Cell(2, 1).InsertData(rows);
+
+        // ── Zebra striping: row-level range, not cell-by-cell ───────────────
+        for (int row = 0; row < rowCount; row += 2)
         {
-            for (int col = 0; col < data.Columns.Count; col++)
-            {
-                var rawValue = data.Rows[row][col];
-                var cell = ws.Cell(row + 2, col + 1);
-
-                if (rawValue == DBNull.Value)
-                {
-                    cell.Value = string.Empty;
-                }
-                else
-                {
-                    cell.Value = rawValue switch
-                    {
-                        bool b    => b,
-                        int i     => i,
-                        long l    => l,
-                        double d  => d,
-                        decimal m => (double)m,
-                        DateTime dt => dt,
-                        _         => rawValue.ToString() ?? string.Empty
-                    };
-                }
-
-                // Zebra striping
-                if (row % 2 == 0)
-                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EBF0FA");
-            }
+            ws.Range(row + 2, 1, row + 2, colCount)
+              .Style.Fill.BackgroundColor = zebraBg;
         }
 
-        ws.Columns().AdjustToContents(1, 60);
+        // ── Column widths: fixed reasonable max instead of AdjustToContents ─
+        // AdjustToContents iterates every cell — catastrophically slow on 800K rows.
+        foreach (var col in ws.ColumnsUsed())
+            col.Width = Math.Min(col.Width, 40);
+
         ws.SheetView.FreezeRows(1);
 
         workbook.SaveAs(filePath);

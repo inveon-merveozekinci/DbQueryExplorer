@@ -510,7 +510,7 @@ public partial class MainViewModel : ObservableObject
 
     // ──── Export Excel ────────────────────────────────────────────────────────
     [RelayCommand]
-    private void ExportExcel()
+    private async Task ExportExcelAsync()
     {
         if (Results is null || Results.Count == 0)
         {
@@ -526,18 +526,25 @@ public partial class MainViewModel : ObservableObject
 
         if (dlg.ShowDialog() != true) return;
 
+        // Take a snapshot of the DataTable on the UI thread before going async
+        var table    = Results.Table!.Copy();
+        var fileName = dlg.FileName;
+
         try
         {
             IsBusy = true;
             StatusMessage = "Excel dosyası oluşturuluyor...";
-            ExcelExportService.Export(Results.Table!, dlg.FileName);
-            StatusMessage = $"✓ Dosya kaydedildi: {dlg.FileName}";
+
+            // Run the CPU-intensive export on a background thread — UI stays responsive
+            await Task.Run(() => ExcelExportService.Export(table, fileName));
+
+            StatusMessage = $"✓ Dosya kaydedildi: {fileName}";
 
             if (MessageBox.Show("Dosya kaydedildi. Açmak ister misiniz?", "Başarılı",
                     MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
             {
                 System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo(dlg.FileName) { UseShellExecute = true });
+                    new System.Diagnostics.ProcessStartInfo(fileName) { UseShellExecute = true });
             }
         }
         catch (Exception ex)
