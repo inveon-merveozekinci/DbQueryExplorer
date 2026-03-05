@@ -1,0 +1,22 @@
+{
+  "connections": [
+    {
+      "name": "Ayakkabı Dünyası Live Db",
+      "dbType": "MSSQL",
+      "server": "85.111.48.119,1433",
+      "port": 1433,
+      "database": "live_ayakkabidunyasi",
+      "username": "ayakkabidunyasi.incommerce",
+      "password": "6KW!o5w7"
+    },
+    {
+      "name": "Test Ortamı",
+      "dbType": "MySQL",
+      "server": "test-host",
+      "port": 3306,
+      "database": "test_db",
+      "username": "readonly_user",
+      "password": "test-password"
+    }
+  ]
+}
