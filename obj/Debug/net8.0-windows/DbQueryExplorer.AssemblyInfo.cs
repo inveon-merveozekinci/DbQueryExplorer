@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DbQueryExplorer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9675c9eedf3395b4a2f085d4354658f005437764")]
 [assembly: System.Reflection.AssemblyProductAttribute("DbQueryExplorer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DbQueryExplorer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
