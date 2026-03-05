@@ -5,12 +5,6 @@ Veritabanı tablolarını görsel olarak keşfetmek, filtrelemek ve sonuçları 
 
 ---
 
-## Ekran Görüntüsü
-
-![DB Query Explorer](docs/screenshot.png)
-
----
-
 ## Özellikler
 
 - **Çoklu bağlantı profili** — `connections.json` üzerinden önceden tanımlanmış bağlantılar
